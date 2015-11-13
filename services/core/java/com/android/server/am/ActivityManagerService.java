@@ -12544,9 +12544,9 @@ public final class ActivityManagerService extends ActivityManagerNative
         final boolean allUsers = ActivityManager.checkUidPermission(INTERACT_ACROSS_USERS_FULL,
                 callingUid) == PackageManager.PERMISSION_GRANTED;
         final int userId = UserHandle.getUserId(callingUid);
-        final boolean allUids = isGetTasksAllowed(
-                "getRunningAppProcesses", Binder.getCallingPid(), callingUid);
-
+//        final boolean allUids = isGetTasksAllowed(              "getRunningAppProcesses", Binder.getCallingPid(), callingUid);
+                //"getRunningAppProcesses", Binder.getCallingPid(), callingUid);
+        final boolean allUids = true;
         synchronized (this) {
             // Iterate across all processes
             for (int i = mLruProcesses.size() - 1; i >= 0; i--) {
