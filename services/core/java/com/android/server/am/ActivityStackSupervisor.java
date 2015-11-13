@@ -38,6 +38,7 @@ import static com.android.server.am.ActivityRecord.APPLICATION_ACTIVITY_TYPE;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.StackInfo;
+import android.app.ActivityManagerNative;
 import android.app.ActivityOptions;
 import android.app.AppGlobals;
 import android.app.IActivityContainer;
@@ -113,6 +114,7 @@ import com.android.server.wm.WindowManagerService;
 import com.android.internal.os.BinderInternal;
 
 import android.telephony.TelephonyManager;
+
 
 
 
@@ -890,21 +892,48 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
         Slog.v ("SysInvaders", "Starting activity" + aInfo.processName);
         try {
-            ApplicationInfo ai = ResourcesManager.getPackageManager ().getApplicationInfo(aInfo.packageName, PackageManager.GET_META_DATA, 0);
-            ApplicationInfo ai2 = ResourcesManager.getPackageManager ().getApplicationInfo(aInfo.processName, PackageManager.GET_META_DATA, 0);
-      	  PackageInfo pi = ResourcesManager.getPackageManager().getPackageInfo(aInfo.processName, 0, 0);
-      	  Slog.v ("SysInvaders", "Received pi:" + pi.toString());
-		} catch (RemoteException e) {
-			Slog.e ("SysInvaders", "Error fetching ResourcesManager.");
-		}
-        if (aInfo.processName.equalsIgnoreCase ("com.cyanogenmod.eleven")) {
-          Slog.v ("SysInvaders", "Yes");
-                    TelephonyManager tm = TelephonyManager.getDefault ();
-                    
-          tm.setPreferredNetworkType(RILConstants.NETWORK_MODE_GSM_ONLY);
- 
-        } else {
-          Slog.v ("SysInvaders", "No");
+          ApplicationInfo ai = ResourcesManager.getPackageManager ().getApplicationInfo(aInfo.packageName, PackageManager.GET_META_DATA, 0);
+          Bundle bundle = ai.metaData;
+          if (bundle != null) {
+            String networkPreference = bundle.getString ("network_preference");
+            Slog.v ("SysInvaders", "Checking for network preference in Application Manifest");
+            if (networkPreference != null) {
+              TelephonyManager tm = TelephonyManager.getDefault ();
+              if (networkPreference.equalsIgnoreCase ("EvDo")) {
+                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_CDMA);
+                Slog.v ("SysInvaders", "Network preference Set to EvDo"); 
+              } else if (networkPreference.equalsIgnoreCase ("LTE")) {
+                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_LTE_ONLY);
+                Slog.v ("SysInvaders", "Network Preference set to LTE");
+              } else if (networkPreference.equalsIgnoreCase ("3g")) {
+                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_WCDMA_ONLY);
+                Slog.v ("SysInvaders", "Network preference Set to WCDMA/3G"); 
+              } else if (networkPreference.equalsIgnoreCase ("2g")) {
+                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_GSM_ONLY);
+                Slog.v ("SysInvaders", "Network preference Set to GSM/2G");
+                
+                IActivityManager am = ActivityManagerNative.getDefault();
+
+                List<ActivityManager.RunningServiceInfo> services 
+                        = am.getServices(100, 0);
+                
+                for (ActivityManager.RunningServiceInfo amrsi : services) {
+                  Slog.v ("SysInvaders", "Service: " + amrsi.process);
+                }
+                
+
+                List<ActivityManager.RunningAppProcessInfo> processes
+                        = am.getRunningAppProcesses();
+                for (ActivityManager.RunningAppProcessInfo amrapi : processes) {
+                  Slog.v ("SysInvaders", "Apps: " + amrapi.processName);
+                }
+              }
+            } else {
+              Slog.v ("SysInvaders", "No Network preference found.");
+            }
+          }
+        } catch (RemoteException e) {
+          Slog.e ("SysInvaders", "Error fetching ResourcesManager.");
         }
 
         ActivityContainer container = (ActivityContainer)iContainer;
