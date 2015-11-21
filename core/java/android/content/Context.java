@@ -2929,6 +2929,13 @@ public abstract class Context {
     public static final String MEDIA_PROJECTION_SERVICE = "media_projection";
 
     /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.sysinvaders.SysInvadersManager} instance
+     * @see #getSystemService
+     */
+    public static final String SYSINVADERS_SERVICE = "sysinvaders_service"; 
+
+    /**
      * Use with {@link #getSystemService} to retrieve a
      * {@link com.android.server.TorchService} for accessing torch service.
      *

@@ -120,6 +120,8 @@ import java.util.TimerTask;
 import dalvik.system.PathClassLoader;
 import java.lang.reflect.Constructor;
 
+import com.android.server.sysinvaders.SysInvadersService;
+
 public final class SystemServer {
     private static final String TAG = "SystemServer";
 
@@ -795,7 +797,8 @@ public final class SystemServer {
             networkPolicy.bindNotificationManager(notification);
 
             mSystemServiceManager.startService(DeviceStorageMonitorService.class);
-
+            mSystemServiceManager.startService(SysInvadersService.class);
+            
             if (!disableLocation) {
                 try {
                     Slog.i(TAG, "Location Manager");

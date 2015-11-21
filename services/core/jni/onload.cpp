@@ -42,6 +42,7 @@ int register_android_server_tv_TvInputHal(JNIEnv* env);
 int register_android_server_PersistentDataBlockService(JNIEnv* env);
 int register_android_server_fingerprint_FingerprintService(JNIEnv* env);
 int register_android_server_Watchdog(JNIEnv* env);
+int register_android_server_sysinvadersService(JNIEnv *env);
 };
 
 using namespace android;
@@ -79,6 +80,6 @@ extern "C" jint JNI_OnLoad(JavaVM* vm, void* reserved)
     register_android_server_PersistentDataBlockService(env);
     register_android_server_fingerprint_FingerprintService(env);
     register_android_server_Watchdog(env);
-
+    register_android_server_sysinvadersService(env);
     return JNI_VERSION_1_4;
 }

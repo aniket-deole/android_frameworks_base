@@ -150,6 +150,9 @@ import android.app.admin.DevicePolicyManager;
 import android.app.job.IJobScheduler;
 import android.app.trust.TrustManager;
 
+import android.sysinvaders.SysInvadersManager;
+import android.sysinvaders.ISysInvadersService;
+
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.app.IAppOpsService;
 import com.android.internal.os.IDropBoxManagerService;
@@ -774,6 +777,12 @@ class ContextImpl extends Context {
                 IBinder b = ServiceManager.getService(APPWIDGET_SERVICE);
                 return new AppWidgetManager(ctx, IAppWidgetService.Stub.asInterface(b));
             }});
+
+        registerService(SYSINVADERS_SERVICE, new ServiceFetcher() {
+            public Object createService(ContextImpl ctx) {
+                IBinder b = ServiceManager.getService(SYSINVADERS_SERVICE);
+                return new SysInvadersManager(ctx, ISysInvadersService.Stub.asInterface(b));
+            }}); 
 
         registerService(THEME_SERVICE, new ServiceFetcher() {
             public Object createService(ContextImpl ctx) {
