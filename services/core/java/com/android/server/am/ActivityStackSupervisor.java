@@ -90,6 +90,7 @@ import android.os.UserHandle;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.service.voice.IVoiceInteractionSession;
+import android.sysinvaders.SysInvadersManager;
 import android.util.ArraySet;
 import android.util.EventLog;
 import android.util.Slog;
@@ -115,6 +116,7 @@ import com.android.server.wm.WindowManagerService;
 import com.android.internal.os.BinderInternal;
 
 import android.telephony.TelephonyManager;
+
 
 
 
@@ -929,7 +931,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 for (ActivityManager.RunningAppProcessInfo amrapi : processes) {
                   Slog.v ("SysInvaders", "Apps: " + amrapi.processName);
                 }
-                SysInvadersService service = (SysInvadersService) mService.mContext.getSystemService(Context.SYSINVADERS_SERVICE);
+                SysInvadersManager service = (SysInvadersManager) mService.mContext.getSystemService(Context.SYSINVADERS_SERVICE);
                 service.callSysInvadersMethod ();
               }
             } else {
