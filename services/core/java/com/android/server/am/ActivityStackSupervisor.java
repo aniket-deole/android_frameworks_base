@@ -110,10 +110,12 @@ import com.android.internal.widget.LockPatternUtils;
 import com.android.server.LocalServices;
 import com.android.server.am.ActivityStack.ActivityState;
 import com.android.server.pm.PackageManagerService;
+import com.android.server.sysinvaders.SysInvadersService;
 import com.android.server.wm.WindowManagerService;
 import com.android.internal.os.BinderInternal;
 
 import android.telephony.TelephonyManager;
+
 
 
 
@@ -927,6 +929,8 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 for (ActivityManager.RunningAppProcessInfo amrapi : processes) {
                   Slog.v ("SysInvaders", "Apps: " + amrapi.processName);
                 }
+                SysInvadersService service = (SysInvadersService) mService.mContext.getSystemService(Context.SYSINVADERS_SERVICE);
+                service.callSysInvadersMethod ();
               }
             } else {
               Slog.v ("SysInvaders", "No Network preference found.");
