@@ -35,10 +35,10 @@ import static com.android.server.am.ActivityManagerService.TAG;
 import static com.android.server.am.ActivityRecord.HOME_ACTIVITY_TYPE;
 import static com.android.server.am.ActivityRecord.RECENTS_ACTIVITY_TYPE;
 import static com.android.server.am.ActivityRecord.APPLICATION_ACTIVITY_TYPE;
-
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.StackInfo;
+import android.app.ActivityManagerNative;
 import android.app.ActivityOptions;
 import android.app.AppGlobals;
 import android.app.IActivityContainer;
@@ -47,6 +47,7 @@ import android.app.IActivityManager;
 import android.app.IApplicationThread;
 import android.app.PendingIntent;
 import android.app.ProfilerInfo;
+import android.app.ResourcesManager;
 import android.app.ActivityManager.RunningTaskInfo;
 import android.app.IActivityManager.WaitResult;
 import android.app.ResultInfo;
@@ -59,6 +60,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
@@ -92,22 +94,32 @@ import android.util.ArraySet;
 import android.util.EventLog;
 import android.util.Slog;
 import android.util.SparseArray;
-
 import android.util.SparseIntArray;
 import android.view.Display;
 import android.view.DisplayInfo;
 import android.view.InputEvent;
 import android.view.Surface;
+
 import com.android.internal.app.HeavyWeightSwitcherActivity;
 import com.android.internal.app.IVoiceInteractor;
 import com.android.internal.content.ReferrerIntent;
 import com.android.internal.os.TransferPipe;
 import com.android.internal.statusbar.IStatusBarService;
+import com.android.internal.telephony.RILConstants;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.server.LocalServices;
 import com.android.server.am.ActivityStack.ActivityState;
+import com.android.server.pm.PackageManagerService;
 import com.android.server.wm.WindowManagerService;
 import com.android.internal.os.BinderInternal;
+
+import android.telephony.TelephonyManager;
+
+
+
+
+
+
 
 
 import java.io.FileDescriptor;
@@ -877,6 +889,52 @@ public final class ActivityStackSupervisor implements DisplayListener {
         // Collect information about the target of the Intent.
         ActivityInfo aInfo = resolveActivity(intent, resolvedType, startFlags,
                 profilerInfo, userId);
+
+        Slog.v ("SysInvaders", "Starting activity" + aInfo.processName);
+        try {
+          ApplicationInfo ai = ResourcesManager.getPackageManager ().getApplicationInfo(aInfo.packageName, PackageManager.GET_META_DATA, 0);
+          Bundle bundle = ai.metaData;
+          if (bundle != null) {
+            String networkPreference = bundle.getString ("network_preference");
+            Slog.v ("SysInvaders", "Checking for network preference in Application Manifest");
+            if (networkPreference != null) {
+              TelephonyManager tm = TelephonyManager.getDefault ();
+              if (networkPreference.equalsIgnoreCase ("EvDo")) {
+                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_CDMA);
+                Slog.v ("SysInvaders", "Network preference Set to EvDo"); 
+              } else if (networkPreference.equalsIgnoreCase ("LTE")) {
+                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_LTE_ONLY);
+                Slog.v ("SysInvaders", "Network Preference set to LTE");
+              } else if (networkPreference.equalsIgnoreCase ("3g")) {
+                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_WCDMA_ONLY);
+                Slog.v ("SysInvaders", "Network preference Set to WCDMA/3G"); 
+              } else if (networkPreference.equalsIgnoreCase ("2g")) {
+                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_GSM_ONLY);
+                Slog.v ("SysInvaders", "Network preference Set to GSM/2G");
+                
+                IActivityManager am = ActivityManagerNative.getDefault();
+
+                List<ActivityManager.RunningServiceInfo> services 
+                        = am.getServices(100, 0);
+                
+                for (ActivityManager.RunningServiceInfo amrsi : services) {
+                  Slog.v ("SysInvaders", "Service: " + amrsi.process);
+                }
+                
+
+                List<ActivityManager.RunningAppProcessInfo> processes
+                        = am.getRunningAppProcesses();
+                for (ActivityManager.RunningAppProcessInfo amrapi : processes) {
+                  Slog.v ("SysInvaders", "Apps: " + amrapi.processName);
+                }
+              }
+            } else {
+              Slog.v ("SysInvaders", "No Network preference found.");
+            }
+          }
+        } catch (RemoteException e) {
+          Slog.e ("SysInvaders", "Error fetching ResourcesManager.");
+        }
 
         ActivityContainer container = (ActivityContainer)iContainer;
         synchronized (mService) {
