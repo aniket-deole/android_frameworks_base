@@ -29,8 +29,6 @@
 namespace android
 {
 
-struct sysinvaders_device_t *sysinvaders_HAL;
-
 /**
  * JNI Layer init function;
  * Load HAL and its method table for later use;
