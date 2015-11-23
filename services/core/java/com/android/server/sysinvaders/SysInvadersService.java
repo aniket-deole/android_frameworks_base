@@ -2,11 +2,11 @@ package com.android.server.sysinvaders;
 
 import android.util.Log;
 import android.util.Slog;
-
+import android.os.Handler;
 import android.os.IBinder;
 import android.content.Context;
-
 import android.sysinvaders.ISysInvadersService;
+
 import com.android.server.SystemService;
 
 
@@ -27,6 +27,7 @@ public class SysInvadersService extends SystemService {
         mContext = context;
         publishBinderService(context.SYSINVADERS_SERVICE, mService);
 
+  
     }
     
     /**
@@ -52,6 +53,16 @@ public class SysInvadersService extends SystemService {
              * We do not really need the nativePointer here;
              * Just to show how arguments are passed to JNI from Java
              */
+                final Handler handler = new Handler();
+
+        		final Runnable r = new Runnable() {
+        		    public void run() {
+        		    	Slog.d (TAG, "Running after 10 seconds.");
+        		    }
+        		};
+        		
+        		handler.postDelayed(r, 10000);
+        		
         }
     };
     private static native long init_native();
