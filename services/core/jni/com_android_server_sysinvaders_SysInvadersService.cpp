@@ -39,13 +39,12 @@ namespace android
  * SysInvaders wrapper function;
  * Call the native SysInvaders function from Framework layer
  */
-static void sysinvadersFunction_native(JNIEnv *env, jobject clazz) {
-  ALOGE("Entering %s\n", __func__);
-  ALOGE("%d\n", __LINE__);
+static jlong init_native(JNIEnv *env, jobject clazz) {
+  ALOGV ("Entering initNative");
+  return 0;
 }
-
 static JNINativeMethod method_table[] = {
-    { "sysinvadersFunction_native", "()V", (void*)sysinvadersFunction_native },
+    { "init_native", "()J", (void*)init_native}
 };
 int register_android_server_sysinvadersService(JNIEnv *env)
 {

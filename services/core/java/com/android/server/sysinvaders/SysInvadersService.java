@@ -34,9 +34,8 @@ public class SysInvadersService extends SystemService {
      */
     @Override
     public void onStart() {
-        if (DEBUG){
-            Slog.d(TAG, "Start service");
-        }
+            Slog.d(TAG, "Start service SysInvaders");
+        init_native ();
     }
     
     /**
@@ -48,14 +47,13 @@ public class SysInvadersService extends SystemService {
          */
         @Override
         public void callSysInvadersMethod() {
-            if (DEBUG){
-                Slog.d(TAG, "Call native service");
-            }
+                Slog.d(TAG, "Call native service SysInvaders");
             /*
              * We do not really need the nativePointer here;
              * Just to show how arguments are passed to JNI from Java
              */
         }
     };
+    private static native long init_native();
 
 }
