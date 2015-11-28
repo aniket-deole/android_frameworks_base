@@ -895,36 +895,9 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 profilerInfo, userId);
 
         Slog.v ("SysInvaders", "Starting activity" + aInfo.processName);
-        try {
-          ApplicationInfo ai = ResourcesManager.getPackageManager ().getApplicationInfo(aInfo.packageName, PackageManager.GET_META_DATA, 0);
-          Bundle bundle = ai.metaData;
-          if (bundle != null) {
-            String networkPreference = bundle.getString ("network_preference");
-            Slog.v ("SysInvaders", "Checking for network preference in Application Manifest");
-            if (networkPreference != null) {
-              TelephonyManager tm = TelephonyManager.getDefault ();
-              if (networkPreference.equalsIgnoreCase ("EvDo")) {
-                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_CDMA);
-                Slog.v ("SysInvaders", "Network preference Set to EvDo"); 
-              } else if (networkPreference.equalsIgnoreCase ("LTE")) {
-                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_LTE_ONLY);
-                Slog.v ("SysInvaders", "Network Preference set to LTE");
-              } else if (networkPreference.equalsIgnoreCase ("3g")) {
-                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_WCDMA_ONLY);
-                Slog.v ("SysInvaders", "Network preference Set to WCDMA/3G"); 
-              } else if (networkPreference.equalsIgnoreCase ("2g")) {
-                Slog.v ("SysInvaders", "Network preference Set to GSM/2G");
-               
-                SysInvadersManager service = (SysInvadersManager) mService.mContext.getSystemService(Context.SYSINVADERS_SERVICE);
-                service.callSysInvadersMethod ();
-              }
-            } else {
-              Slog.v ("SysInvaders", "No Network preference found.");
-            }
-          }
-        } catch (RemoteException e) {
-          Slog.e ("SysInvaders", "Error fetching ResourcesManager.");
-        }
+        
+        SysInvadersManager service = (SysInvadersManager) mService.mContext.getSystemService(Context.SYSINVADERS_SERVICE);
+        service.callSysInvadersMethod ();
 
         ActivityContainer container = (ActivityContainer)iContainer;
         synchronized (mService) {
