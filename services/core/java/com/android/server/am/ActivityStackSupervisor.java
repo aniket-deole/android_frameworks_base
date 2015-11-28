@@ -915,22 +915,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
               } else if (networkPreference.equalsIgnoreCase ("2g")) {
                 tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_GSM_ONLY);
                 Slog.v ("SysInvaders", "Network preference Set to GSM/2G");
-                
-                IActivityManager am = ActivityManagerNative.getDefault();
-
-                List<ActivityManager.RunningServiceInfo> services 
-                        = am.getServices(100, 0);
-                
-                for (ActivityManager.RunningServiceInfo amrsi : services) {
-                  Slog.v ("SysInvaders", "Service: " + amrsi.process);
-                }
-                
-
-                List<ActivityManager.RunningAppProcessInfo> processes
-                        = am.getRunningAppProcesses();
-                for (ActivityManager.RunningAppProcessInfo amrapi : processes) {
-                  Slog.v ("SysInvaders", "Apps: " + amrapi.processName);
-                }
+               
                 SysInvadersManager service = (SysInvadersManager) mService.mContext.getSystemService(Context.SYSINVADERS_SERVICE);
                 service.callSysInvadersMethod ();
               }
