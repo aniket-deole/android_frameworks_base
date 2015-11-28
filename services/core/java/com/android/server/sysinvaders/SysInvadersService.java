@@ -4,6 +4,7 @@ import android.util.Log;
 import android.util.Slog;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.app.ActivityManager;
 import android.app.ActivityManagerNative;
 import android.app.IActivityManager;
@@ -65,6 +66,7 @@ public class SysInvadersService extends SystemService {
       { 
         public void run() 
         {
+        	try {
         	IActivityManager am = ActivityManagerNative.getDefault();
 
             List<ActivityManager.RunningServiceInfo> services 
@@ -80,6 +82,9 @@ public class SysInvadersService extends SystemService {
             for (ActivityManager.RunningAppProcessInfo amrapi : processes) {
               Slog.v ("SysInvaders", "Apps: " + amrapi.processName);
             }
+        	} catch (RemoteException e) {
+        		Slog.d(TAG, e);
+        	}
         }
       }
 private static native long init_native();
