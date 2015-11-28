@@ -83,7 +83,7 @@ public class SysInvadersService extends SystemService {
               Slog.v ("SysInvaders", "Apps: " + amrapi.processName);
             }
         	} catch (RemoteException e) {
-        		Slog.d(TAG, e);
+        		Slog.d(TAG, "Remote Exception", e);
         	}
         }
       }
