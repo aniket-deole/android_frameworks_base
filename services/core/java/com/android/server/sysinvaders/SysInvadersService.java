@@ -6,65 +6,62 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.content.Context;
 import android.sysinvaders.ISysInvadersService;
-
+import android.os.CountDownTimer;
 import com.android.server.SystemService;
-
+import java.util.Timer;
+import java.util.TimerTask;
 
 /*
 https://www.linaro.org/blog/adding-a-new-system-service-to-android-5-tips-and-how-to/
 */
 public class SysInvadersService extends SystemService {
 
-    private final Context mContext;
-    private static final String TAG = "SysInvadersService";
-    private static final boolean DEBUG = true;
+  private final Context mContext;
+  private static final String TAG = "SysInvadersService";
+  private static final boolean DEBUG = true;
 
-    public SysInvadersService(Context context) {
-        super(context);
-        if (DEBUG){
-            Slog.d(TAG, "Build service");
-        }
-        mContext = context;
-        publishBinderService(context.SYSINVADERS_SERVICE, mService);
-
-  
+  public SysInvadersService(Context context) {
+    super(context);
+    if (DEBUG){
+      Slog.d(TAG, "Build service");
     }
-    
+    mContext = context;
+    publishBinderService(context.SYSINVADERS_SERVICE, mService);
+
+
+  }
+
+  /**
+   * Called when service is started by the main system service
+   */
+  @Override
+  public void onStart() {
+    Slog.d(TAG, "Start service SysInvaders");
+    init_native ();
+  }
+
+    private static Timer timer = new Timer(); 
+  /**
+   * Implementation of AIDL service interface
+   */
+  private final IBinder mService = new ISysInvadersService.Stub() {
     /**
-     * Called when service is started by the main system service
+     * Implementation of the methods described in AIDL interface
      */
     @Override
-    public void onStart() {
-            Slog.d(TAG, "Start service SysInvaders");
-        init_native ();
+    public void callSysInvadersMethod() {
+      Slog.d(TAG, "Call native service SysInvaders");
+      timer.scheduleAtFixedRate(new mainTask(), 0, 5000);
+         
     }
-    
-    /**
-     * Implementation of AIDL service interface
-     */
-    private final IBinder mService = new ISysInvadersService.Stub() {
-        /**
-         * Implementation of the methods described in AIDL interface
-         */
-        @Override
-        public void callSysInvadersMethod() {
-                Slog.d(TAG, "Call native service SysInvaders");
-            /*
-             * We do not really need the nativePointer here;
-             * Just to show how arguments are passed to JNI from Java
-             */
-                final Handler handler = new Handler();
-
-        		final Runnable r = new Runnable() {
-        		    public void run() {
-        		    	Slog.d (TAG, "Running after 10 seconds.");
-        		    }
-        		};
-        		
-        		handler.postDelayed(r, 10000);
-        		
+};
+  private class mainTask extends TimerTask
+      { 
+        public void run() 
+        {
+          Slog.d (TAG, "TIMER FIRED");
         }
-    };
-    private static native long init_native();
+      }
+private static native long init_native();
 
 }
