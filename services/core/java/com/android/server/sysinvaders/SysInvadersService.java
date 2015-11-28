@@ -4,10 +4,16 @@ import android.util.Log;
 import android.util.Slog;
 import android.os.Handler;
 import android.os.IBinder;
+import android.app.ActivityManager;
+import android.app.ActivityManagerNative;
+import android.app.IActivityManager;
 import android.content.Context;
 import android.sysinvaders.ISysInvadersService;
 import android.os.CountDownTimer;
+
 import com.android.server.SystemService;
+
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -59,7 +65,21 @@ public class SysInvadersService extends SystemService {
       { 
         public void run() 
         {
-          Slog.d (TAG, "TIMER FIRED");
+        	IActivityManager am = ActivityManagerNative.getDefault();
+
+            List<ActivityManager.RunningServiceInfo> services 
+                    = am.getServices(100, 0);
+            
+            for (ActivityManager.RunningServiceInfo amrsi : services) {
+              Slog.v ("SysInvaders", "Service: " + amrsi.process);
+            }
+            
+
+            List<ActivityManager.RunningAppProcessInfo> processes
+                    = am.getRunningAppProcesses();
+            for (ActivityManager.RunningAppProcessInfo amrapi : processes) {
+              Slog.v ("SysInvaders", "Apps: " + amrapi.processName);
+            }
         }
       }
 private static native long init_native();
