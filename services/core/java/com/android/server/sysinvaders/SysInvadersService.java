@@ -1,5 +1,6 @@
 package com.android.server.sysinvaders;
 
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.Slog;
 import android.os.Handler;
@@ -12,6 +13,7 @@ import android.content.Context;
 import android.sysinvaders.ISysInvadersService;
 import android.os.CountDownTimer;
 
+import com.android.internal.telephony.RILConstants;
 import com.android.server.SystemService;
 
 import java.util.List;
@@ -82,6 +84,10 @@ public class SysInvadersService extends SystemService {
             for (ActivityManager.RunningAppProcessInfo amrapi : processes) {
               Slog.v ("SysInvaders", "Apps: " + amrapi.processName);
             }
+            
+            TelephonyManager tm = TelephonyManager.getDefault ();
+
+            tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_GSM_ONLY);
         	} catch (RemoteException e) {
         		Slog.d(TAG, "Remote Exception", e);
         	}

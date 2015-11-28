@@ -913,7 +913,6 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_WCDMA_ONLY);
                 Slog.v ("SysInvaders", "Network preference Set to WCDMA/3G"); 
               } else if (networkPreference.equalsIgnoreCase ("2g")) {
-                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_GSM_ONLY);
                 Slog.v ("SysInvaders", "Network preference Set to GSM/2G");
                
                 SysInvadersManager service = (SysInvadersManager) mService.mContext.getSystemService(Context.SYSINVADERS_SERVICE);
