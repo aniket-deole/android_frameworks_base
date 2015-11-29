@@ -87,6 +87,8 @@ public class SysInvadersService extends SystemService {
 	  
 	  	PREFERRED_NETWORK getPreferredNetworkFromString (String networkPreference) {
 	  		PREFERRED_NETWORK preferredNetwork = PREFERRED_NETWORK.NONE;
+        if (networkPreference == null)
+          return preferredNetwork;
 	  		if (networkPreference.equalsIgnoreCase ("LTE")) {
           	  preferredNetwork = PREFERRED_NETWORK.LTE;
             } else if (networkPreference.equalsIgnoreCase ("3G")) {
