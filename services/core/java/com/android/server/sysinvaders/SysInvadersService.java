@@ -29,11 +29,21 @@ https://www.linaro.org/blog/adding-a-new-system-service-to-android-5-tips-and-ho
 */
 public class SysInvadersService extends SystemService {
 
+	/*
+	 * LTE = 4.
+	 * 3G = 3.
+	 * 2G = 2
+	 */
+	public enum PREFERRED_NETWORK {
+		NONE,TWOG,THREEG,LTE
+	} 
   private final Context mContext;
   private static final String TAG = "SysInvadersService";
   private static final boolean DEBUG = true;
   
   private Boolean timerStarted;
+  
+  public static final Integer TIMER_DURATION = 10000;
   
   public SysInvadersService(Context context) {
     super(context);
@@ -67,48 +77,86 @@ public class SysInvadersService extends SystemService {
     @Override
     public void callSysInvadersMethod() {
       Slog.d(TAG, "Call native service SysInvaders");
-      timer.schedule (new mainTask(), 5000);
+      if (timerStarted)
+    	  timer.cancel();
+      timer.schedule (new mainTask(), TIMER_DURATION);
     }
 };
   private class mainTask extends TimerTask
       { 
-        public void run() 
+	  
+	  	PREFERRED_NETWORK getPreferredNetworkFromString (String networkPreference) {
+	  		PREFERRED_NETWORK preferredNetwork = PREFERRED_NETWORK.NONE;
+	  		if (networkPreference.equalsIgnoreCase ("LTE")) {
+          	  preferredNetwork = PREFERRED_NETWORK.LTE;
+            } else if (networkPreference.equalsIgnoreCase ("3G")) {
+          	  preferredNetwork = PREFERRED_NETWORK.THREEG;
+            } else if (networkPreference.equalsIgnoreCase ("2G")) {
+          	  preferredNetwork = PREFERRED_NETWORK.TWOG;
+            } else {
+          	  preferredNetwork = PREFERRED_NETWORK.TWOG;
+            }
+	  		return preferredNetwork;
+	  	}
+	  
+	  	public void run() 
         {
         	try {
-        	IActivityManager am = ActivityManagerNative.getDefault();
-
-            List<ActivityManager.RunningServiceInfo> services 
-                    = am.getServices(100, 0);
-            
-            for (ActivityManager.RunningServiceInfo amrsi : services) {
-              Slog.v ("SysInvaders", "Service: " + amrsi.process);
-              ApplicationInfo ai = ResourcesManager.getPackageManager ().getApplicationInfo(amrsi.process, PackageManager.GET_META_DATA, 0);
-              Bundle bundle = ai.metaData;
-              if (bundle != null) {
-                  String networkPreference = bundle.getString ("network_preference");
-                  Slog.v ("SysInvaders", "NetworkPreference: " + networkPreference);
-              } else {
-            	  Slog.v ("SysInvaders", "NetworkPreference: None");
-              }
-              
-            }
-            
-            List<ActivityManager.RunningAppProcessInfo> processes
-                    = am.getRunningAppProcesses();
-            for (ActivityManager.RunningAppProcessInfo amrapi : processes) {
-              Slog.v ("SysInvaders", "Apps: " + amrapi.processName);
-              ApplicationInfo ai = ResourcesManager.getPackageManager ().getApplicationInfo(amrapi.processName, PackageManager.GET_META_DATA, 0);
-              Bundle bundle = ai.metaData;
-              if (bundle != null) {
-                  String networkPreference = bundle.getString ("network_preference");
-                  Slog.v ("SysInvaders", "NetworkPreference: " + networkPreference);
-              } else  {
-            	  Slog.v ("SysInvaders", "NetworkPreference: None");
-              }
-            }
-            
-            TelephonyManager tm = TelephonyManager.getDefault ();
-            tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_GSM_ONLY);
+            	timerStarted = false;
+	        	IActivityManager am = ActivityManagerNative.getDefault();
+	
+	            List<ActivityManager.RunningServiceInfo> services 
+	                    = am.getServices(100, 0);
+	
+	            PREFERRED_NETWORK topPreferredNetwork = PREFERRED_NETWORK.NONE;
+	            
+	            for (ActivityManager.RunningServiceInfo amrsi : services) {
+	              ApplicationInfo ai = ResourcesManager.getPackageManager ().getApplicationInfo(amrsi.process, PackageManager.GET_META_DATA, 0);
+	              if (ai != null) {
+		              Bundle bundle = ai.metaData;
+		              if (bundle != null) {
+		                  String networkPreference = bundle.getString ("network_preference");
+		                  PREFERRED_NETWORK preferredNetwork = getPreferredNetworkFromString (networkPreference);
+		                  if (preferredNetwork.ordinal() > topPreferredNetwork.ordinal())
+		                	  topPreferredNetwork = preferredNetwork;
+		                  Slog.v ("SysInvaders", "NetworkPreference: " + networkPreference +", Top Preference: " + topPreferredNetwork);
+		              }
+	              }
+	            }
+	            
+	            List<ActivityManager.RunningAppProcessInfo> processes
+	                    = am.getRunningAppProcesses();
+	            for (ActivityManager.RunningAppProcessInfo amrapi : processes) {
+	              ApplicationInfo ai = ResourcesManager.getPackageManager ().getApplicationInfo(amrapi.processName, PackageManager.GET_META_DATA, 0);
+	              if (ai != null) {
+		              Bundle bundle = ai.metaData;
+		              if (bundle != null) {
+		                  String networkPreference = bundle.getString ("network_preference");
+		                  PREFERRED_NETWORK preferredNetwork = getPreferredNetworkFromString (networkPreference);
+		                  if (preferredNetwork.ordinal() > topPreferredNetwork.ordinal())
+		                	  topPreferredNetwork = preferredNetwork;
+		                  Slog.v ("SysInvaders", "NetworkPreference: " + networkPreference +", Top Preference: " + topPreferredNetwork);
+		              }
+	              }
+	            }
+	            
+	            if (topPreferredNetwork == PREFERRED_NETWORK.LTE) {
+	                TelephonyManager tm = TelephonyManager.getDefault ();
+	                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA);	
+	                  Slog.v ("SysInvaders", "NetworkPreference set to LTE Preferred.");
+	            } else if (topPreferredNetwork == PREFERRED_NETWORK.TWOG) {
+	                TelephonyManager tm = TelephonyManager.getDefault ();
+	                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_GSM_UMTS);
+	                  Slog.v ("SysInvaders", "NetworkPreference set to 2G.");
+	            } else if (topPreferredNetwork == PREFERRED_NETWORK.THREEG) {
+	                TelephonyManager tm = TelephonyManager.getDefault ();
+	                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_WCDMA_PREF);
+	                  Slog.v ("SysInvaders", "NetworkPreference set to 3G preferred.");
+	            } else if (topPreferredNetwork == PREFERRED_NETWORK.NONE) {
+	                  Slog.v ("SysInvaders", "NetworkPreference unchanged.");
+	            }
+                Slog.v ("SysInvaders", "-----------------------------------");
+	            
         	} catch (RemoteException e) {
         		Slog.d(TAG, "Remote Exception", e);
         	} catch (Exception e) {
