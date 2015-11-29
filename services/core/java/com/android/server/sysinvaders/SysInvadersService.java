@@ -138,6 +138,7 @@ public class SysInvadersService extends SystemService {
 		                  Slog.v ("SysInvaders", "NetworkPreference: " + networkPreference +", Top Preference: " + topPreferredNetwork);
 		              }
 	              }
+	              break;
 	            }
 	            
 	            if (topPreferredNetwork == PREFERRED_NETWORK.LTE) {
