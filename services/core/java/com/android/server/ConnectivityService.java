@@ -122,6 +122,8 @@ import com.android.server.net.BaseNetworkObserver;
 import com.android.server.net.LockdownVpnTracker;
 import com.google.android.collect.Lists;
 import com.google.android.collect.Sets;
+import android.sysinvaders.SysInvadersManager;
+import com.android.server.sysinvaders.SysInvadersService;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -4474,6 +4476,10 @@ public class ConnectivityService extends IConnectivityManager.Stub
                     ReapUnvalidatedNetworks.REAP);
         } else if (state == NetworkInfo.State.DISCONNECTED ||
                 state == NetworkInfo.State.SUSPENDED) {
+            Slog.d ("SysInvaders", "Wifi Disconnected. Calling Service");
+            SysInvadersManager service = (SysInvadersManager) mContext.getSystemService (Context.
+                SYSINVADERS_SERVICE);
+            service.callSysInvadersMethod ();
             networkAgent.asyncChannel.disconnect();
             if (networkAgent.isVPN()) {
                 synchronized (mProxyLock) {

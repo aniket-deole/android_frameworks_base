@@ -20,22 +20,26 @@ import android.os.CountDownTimer;
 import com.android.internal.telephony.RILConstants;
 import com.android.server.SystemService;
 
+import android.net.ConnectivityManager;
+
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import java.lang.IllegalStateException;
 /*
 https://www.linaro.org/blog/adding-a-new-system-service-to-android-5-tips-and-how-to/
 */
 public class SysInvadersService extends SystemService {
 
 	/*
-	 * LTE = 4.
-	 * 3G = 3.
+	 * LTE = 5.
+	 * 3G = 4.
+   * EvDo = 3;
 	 * 2G = 2
 	 */
 	public enum PREFERRED_NETWORK {
-		NONE,TWOG,THREEG,LTE
+		NONE,TWOG,EVDO, THREEG,LTE
 	} 
   private final Context mContext;
   private static final String TAG = "SysInvadersService";
@@ -76,15 +80,23 @@ public class SysInvadersService extends SystemService {
      */
     @Override
     public void callSysInvadersMethod() {
-      Slog.d(TAG, "Call native service SysInvaders");
-      if (timerStarted)
-    	  timer.cancel();
-      timer.schedule (new mainTask(), TIMER_DURATION);
+      try {
+        if (timerStarted) {
+    	    timer.cancel();
+          timerStarted = false;
+        }
+      } catch (IllegalStateException e) {
+      } finally {
+      }
+        timer = new Timer ();
+      timer.schedule (new ChangeNetworkTask (), TIMER_DURATION);
+      timerStarted = true;
     }
 };
-  private class mainTask extends TimerTask
+  
+  private class ChangeNetworkTask extends TimerTask
       { 
-	  
+
 	  	PREFERRED_NETWORK getPreferredNetworkFromString (String networkPreference) {
 	  		PREFERRED_NETWORK preferredNetwork = PREFERRED_NETWORK.NONE;
         if (networkPreference == null)
@@ -95,6 +107,8 @@ public class SysInvadersService extends SystemService {
           	  preferredNetwork = PREFERRED_NETWORK.THREEG;
             } else if (networkPreference.equalsIgnoreCase ("2G")) {
           	  preferredNetwork = PREFERRED_NETWORK.TWOG;
+            } else if (networkPreference.equalsIgnoreCase ("EvDo")) {
+              preferredNetwork = PREFERRED_NETWORK.EVDO;
             } else {
           	  preferredNetwork = PREFERRED_NETWORK.TWOG;
             }
@@ -103,16 +117,25 @@ public class SysInvadersService extends SystemService {
 	  
 	  	public void run() 
         {
-        	try {
-            	timerStarted = false;
-	        	IActivityManager am = ActivityManagerNative.getDefault();
-	
-	            List<ActivityManager.RunningServiceInfo> services 
-	                    = am.getServices(100, 0);
-	
-	            PREFERRED_NETWORK topPreferredNetwork = PREFERRED_NETWORK.NONE;
-	            
-	            for (ActivityManager.RunningServiceInfo amrsi : services) {
+          try {
+            timerStarted = false;
+            ConnectivityManager connectivityManager = (ConnectivityManager) mContext.getSystemService (Context.CONNECTIVITY_SERVICE);
+            if (connectivityManager.getNetworkInfo (ConnectivityManager.TYPE_WIFI).isConnected ()) {
+              // Wifi Is connected. We do not do any changes.
+              // and we return.
+              Slog.d (TAG, "Connected to wifi. Network Preference Unchanged.");
+              return;
+            }
+
+
+            IActivityManager am = ActivityManagerNative.getDefault();
+
+            List<ActivityManager.RunningServiceInfo> services 
+              = am.getServices(100, 0);
+
+            PREFERRED_NETWORK topPreferredNetwork = PREFERRED_NETWORK.NONE;
+
+            for (ActivityManager.RunningServiceInfo amrsi : services) {
 	              ApplicationInfo ai = ResourcesManager.getPackageManager ().getApplicationInfo(amrsi.process, PackageManager.GET_META_DATA, 0);
 	              if (ai != null) {
 		              Bundle bundle = ai.metaData;
@@ -145,16 +168,20 @@ public class SysInvadersService extends SystemService {
 	            
 	            if (topPreferredNetwork == PREFERRED_NETWORK.LTE) {
 	                TelephonyManager tm = TelephonyManager.getDefault ();
-	                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA);	
+	                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_LTE_CDMA_EVDO);	
 	                  Slog.v ("SysInvaders", "NetworkPreference set to LTE Preferred.");
 	            } else if (topPreferredNetwork == PREFERRED_NETWORK.TWOG) {
 	                TelephonyManager tm = TelephonyManager.getDefault ();
-	                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_GSM_UMTS);
+	                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_GSM_ONLY);
 	                  Slog.v ("SysInvaders", "NetworkPreference set to 2G.");
 	            } else if (topPreferredNetwork == PREFERRED_NETWORK.THREEG) {
 	                TelephonyManager tm = TelephonyManager.getDefault ();
 	                tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_WCDMA_PREF);
 	                  Slog.v ("SysInvaders", "NetworkPreference set to 3G preferred.");
+              } else if (topPreferredNetwork == PREFERRED_NETWORK.EVDO) {
+                  TelephonyManager tm = TelephonyManager.getDefault ();
+                  tm.setPreferredNetworkType (RILConstants.NETWORK_MODE_EVDO_NO_CDMA);
+                  Slog.v ("SysInvaders", "NetworkPreference set to EvDo");
 	            } else if (topPreferredNetwork == PREFERRED_NETWORK.NONE) {
 	                  Slog.v ("SysInvaders", "NetworkPreference unchanged.");
 	            }
