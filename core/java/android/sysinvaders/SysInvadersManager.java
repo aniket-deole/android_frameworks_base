@@ -56,19 +56,7 @@ public class SysInvadersManager {
         try{
             mService.callSysInvadersMethod();
         } catch (RemoteException ex){
-            Slog.e("JoffeManager", "Unable to contact the remote SysInvaders Service");
+            Slog.e("SysInvadersManager", "Unable to contact the remote SysInvaders Service");
         }
-    }
-    
-    /**
-     * This method (which does nothing)
-     * is hidden from system API
-     * Have a look at 'reflection' to see how you can
-     * access hidden class members
-     * 
-     * @hide
-     */
-    public void hiddenMethod(){
-        Slog.d("SysInvadersManager", "Hello I'm hidden");
     }
 }

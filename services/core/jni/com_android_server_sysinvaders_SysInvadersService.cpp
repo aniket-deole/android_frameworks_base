@@ -40,7 +40,6 @@ namespace android
  * Call the native SysInvaders function from Framework layer
  */
 static jlong init_native(JNIEnv *env, jobject clazz) {
-  ALOGV ("Entering initNative");
   return 0;
 }
 static JNINativeMethod method_table[] = {
